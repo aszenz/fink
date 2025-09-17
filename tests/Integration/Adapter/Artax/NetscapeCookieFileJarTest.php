@@ -10,6 +10,28 @@ use DateTimeImmutable;
 use RuntimeException;
 
 class NetscapeCookieFileJarTest extends IntegrationTestCase
+    public function testParsesHttpOnlyCookie()
+    {
+        $expire = (new DateTimeImmutable())->modify('+1 day')->format('U');
+        $cookies = <<<EOT
+# Netscape HTTP Cookie File
+#HttpOnly_.example.com	TRUE	/	FALSE	$expire	SESSIONID	secretvalue
+EOT;
+
+        $path = $this->workspace()->path('httponly_cookies.txt');
+        file_put_contents($path, $cookies);
+
+        $jar = new NetscapeCookieFileJar($path);
+        $allCookies = $jar->getAll();
+        $found = false;
+        foreach ($allCookies as $cookie) {
+            if ($cookie->getName() === 'SESSIONID' && $cookie->getValue() === 'secretvalue') {
+                $found = true;
+                $this->assertTrue($cookie->isHttpOnly(), 'Cookie should be HttpOnly');
+            }
+        }
+        $this->assertTrue($found, 'HttpOnly cookie should be found');
+    }
 {
     public function testThrowsExceptionIfFileDoesNotExist()
     {

@@ -70,7 +70,16 @@ class NetscapeCookieFileJar implements CookieJar
         }
 
         if ($line[0] === '#') {
-            return null;
+            // Only ignore lines that are comments, not #HttpOnly_ cookies
+            if (strpos($line, '#HttpOnly_') === 0) {
+                // Remove the #HttpOnly_ prefix
+                $line = substr($line, strlen('#HttpOnly_'));
+                $isHttpOnly = true;
+            } else {
+                return null;
+            }
+        } else {
+            $isHttpOnly = false;
         }
 
         $parts = explode("\t", $line);
@@ -102,6 +111,9 @@ class NetscapeCookieFileJar implements CookieJar
         \assert($secure !== null); // silence phpstan
         if (strtolower($secure) === 'true') {
             $string .= '; secure';
+        }
+        if ($isHttpOnly) {
+            $string .= '; HttpOnly';
         }
 
         return ResponseCookie::fromHeader($string);
