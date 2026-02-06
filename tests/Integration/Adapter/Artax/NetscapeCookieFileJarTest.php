@@ -86,8 +86,8 @@ EOT
 EOT
         ;
 
+        $this->workspace()->put('httponly_cookies.txt', $cookies);
         $path = $this->workspace()->path('httponly_cookies.txt');
-        file_put_contents($path, $cookies);
 
         $jar = new NetscapeCookieFileJar($path);
 
